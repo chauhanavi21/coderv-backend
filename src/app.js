@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { clerkMiddleware } from './middleware/auth.js';
-import healthRoutes from './routes/healthRoutes.js';
-import traceRoutes from './routes/traceRoutes.js';
-import progressRoutes from './routes/progressRoutes.js';
+import healthRoutes    from './routes/healthRoutes.js';
+import traceRoutes     from './routes/traceRoutes.js';
+import progressRoutes  from './routes/progressRoutes.js';
+import webhookRoutes   from './routes/webhookRoutes.js';
 
 const app = express();
 
@@ -21,16 +22,21 @@ app.use(
   })
 );
 
-// ── Body parsing ──────────────────────────────────────────────────────────────
+// ── Webhook routes — MUST be mounted BEFORE express.json() ───────────────────
+// svix requires the raw request body (Buffer) to verify the signature.
+// express.json() would parse and replace req.body, breaking verification.
+app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookRoutes);
+
+// ── JSON body parser (all other routes) ──────────────────────────────────────
 app.use(express.json({ limit: '100kb' }));
 
 // ── Clerk — populates req.auth on every request ───────────────────────────────
 app.use(clerkMiddleware());
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/health', healthRoutes);
-app.use('/api/trace', traceRoutes);
-app.use('/api/progress', progressRoutes);
+app.use('/api/health',    healthRoutes);
+app.use('/api/trace',     traceRoutes);
+app.use('/api/progress',  progressRoutes);
 
 // ── 404 catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
