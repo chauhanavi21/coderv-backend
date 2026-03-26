@@ -1,13 +1,15 @@
 {
   "name": "coderv-backend",
   "version": "1.0.0",
-  "description": "CoderV Express backend — Python execution tracer",
+  "description": "CoderV Express backend — MVC, Python tracer, Clerk auth, Supabase storage",
   "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
+    "@clerk/express": "^1.3.0",
+    "@supabase/supabase-js": "^2.50.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
