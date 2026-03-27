@@ -1,13 +1,28 @@
-import { requireAuth, clerkMiddleware } from '@clerk/express';
+import admin from '../config/firebase.js';
 
 /**
- * Mounts Clerk on the request object (populates req.auth).
- * Use once globally in app.js.
+ * Verifies a Firebase ID token from the Authorization: Bearer <token> header.
+ * On success, populates req.auth = { userId, email, name, picture }.
+ * On failure, returns 401.
  */
-export { clerkMiddleware };
+export async function requireAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid Authorization header.' });
+  }
 
-/**
- * Rejects unauthenticated requests with 401.
- * Use on individual routes or routers that need auth.
- */
-export { requireAuth };
+  const token = header.slice(7);
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.auth = {
+      userId:  decoded.uid,
+      email:   decoded.email   ?? null,
+      name:    decoded.name    ?? null,
+      picture: decoded.picture ?? null,
+    };
+    next();
+  } catch (err) {
+    console.error('[requireAuth] Token verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid or expired token.' });
+  }
+}
