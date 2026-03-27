@@ -1,4 +1,24 @@
 import * as progressModel from '../models/progressModel.js';
+import * as userModel from '../models/userModel.js';
+
+/** Ensures the user row exists in Supabase before any progress write. */
+async function ensureUser(auth) {
+  try {
+    const exists = await userModel.getUserById(auth.userId);
+    if (!exists) {
+      const [firstName = '', ...rest] = (auth.name || '').trim().split(' ');
+      await userModel.upsertUser({
+        id:         auth.userId,
+        email:      auth.email      ?? '',
+        first_name: firstName,
+        last_name:  rest.join(' '),
+        image_url:  auth.picture    ?? null,
+      });
+    }
+  } catch {
+    // Non-fatal — progress write may still fail but we log it there
+  }
+}
 
 export async function getProgress(req, res) {
   try {
@@ -13,6 +33,7 @@ export async function getProgress(req, res) {
 
 export async function markComplete(req, res) {
   try {
+    await ensureUser(req.auth);
     const { userId } = req.auth;
     const { lessonId, difficulty, exampleId } = req.body ?? {};
 
