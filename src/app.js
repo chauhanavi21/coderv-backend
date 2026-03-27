@@ -4,6 +4,7 @@ import healthRoutes   from './routes/healthRoutes.js';
 import traceRoutes    from './routes/traceRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import userRoutes     from './routes/userRoutes.js';
+import lessonRoutes, { exampleRouter } from './routes/lessonRoutes.js';
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.use('/api/health',   healthRoutes);
 app.use('/api/trace',    traceRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/users',    userRoutes);
+app.use('/api/lessons',  lessonRoutes);
+app.use('/api/examples', exampleRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {
